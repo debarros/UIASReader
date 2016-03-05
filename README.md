@@ -6,9 +6,10 @@ The files are provided by NYSED in .xls format, but must be saved as .xlsx forma
 
 ##The neat part
 
-There are way too many types of errors included in the False Transfers report.  
+There are way too many types of errors included in the False Transfers report.
 This program separates out the actual false transfers from the overlapping enrollments.
 It then categorizes overlapping enrollments into the following types:
+
 1. We both tried to claim the student at the beginning of the year
 1. exact same enrollment
 1. Same exit date
