@@ -24,3 +24,5 @@ It then categorizes overlapping enrollments into the following types:
 1. False Dropout files
 1. Comparison to prior month
 1. Graphic user interface using Shiny
+1. Incorporate the Demographics (Student Lite) extract from the student management system
+
