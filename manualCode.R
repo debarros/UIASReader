@@ -4,15 +4,24 @@
 library(openxlsx)
 myLEA = "Green Tech High Charter"
 
+#Set up the input variables
+FD = NULL
+FT = NULL
+SE = NULL
+DP = NULL
+FT.AY = NULL
+
 
 # read in the data ####
 FD = read.xlsx(xlsxFile = "False Dropouts.xlsx", sheet = "violations", startRow = 10)
 FT = read.xlsx(xlsxFile = "False Transfers.xlsx", sheet = "violations", startRow = 10)
 SE = read.xlsx(xlsxFile = "Simultaneous Enrollments.xlsx", sheet = "violations", startRow = 9)
-DP = read.xlsx(xlsxFile = "Disappearing Students.xlsx", sheet = "violations", startRow = 9)
+DP = read.xlsx(xlsxFile = "Disappearing Students.xlsx", sheet = "violations", startRow = 10)
+FT.AY = read.xlsx(xlsxFile = "False Transfers Across Years.xlsx", sheet = "violations", startRow = 9)
 
 
 # Simultaneous Enrollments ####
+if(!is.null(SE)){
 SE.local = SE[SE$LEA == myLEA,]
 SE.other = SE[SE$LEA != myLEA,]
 SimEnr = data.frame(NYSSIS = unique(SE$NYSSIS), stringsAsFactors = FALSE)
@@ -31,9 +40,11 @@ SimEnr$ID = SE.local$Local.ID[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)]
 SimEnr = SimEnr[,c("firstName", "lastName","ID", "WhoShouldExit", "OtherSchool", "LocalEntry", "OtherEntry")]
 
 SimEnr = SimEnr[order(SimEnr$WhoShouldExit, SimEnr$OtherSchool),]
+}
 
 
 # False Transfers ####
+if(!is.null(FT)){
 FalTr = FT[FT$Case == "FT",c("Last.Name", "First.Name","NYSSIS","Local.ID","Entry.Date","Exit.Date")]
 OL = FT[FT$Case == "OL",]
 OL.local = OL[OL$LEA == myLEA,]
@@ -73,14 +84,29 @@ for( i in 1:nrow(OverLap)){
 }
 OverLap$OtherLEA = OL.other$LEA[match(OverLap$NYSSIS, OL.other$NYSSIS)]
 OverLap = OverLap[order(OverLap$OtherLEA, OverLap$issue),]
+}
+
+
+# False Transfers Across Years ####
+if(!is.null(FT.AY)){
+FalTrAY = FT.AY[FT.AY$Case == "FT",c("Last.Name", "First.Name","NYSSIS","Local.ID","Entry.Date","Exit.Date")]
+if(is.null(FalTr)){
+  FalTr = FalTrAY
+} else {
+  FalTr = rbind.data.frame(FalTr, FalTrAY)
+}
+}
 
 
 # Disappearing Students ####
-# this section has not been written yet
+if(!is.null(DP)){
+DisapStu = DP[,c("Last.Name","First.Name","NYSSIS","Local.ID","Entry.Date")]
+}
 
 
 # False Dropouts ####
 # this section has not been written yet
+if(!is.null(FD)){}
 
 
 # Comparison to prior month ####
@@ -104,11 +130,31 @@ addWorksheet(wb=wb, sheetName = "False Transfers")
 freezePane(wb, "False Transfers", firstActiveRow = 2, firstActiveCol = 2)
 setColWidths(wb, "False Transfers", cols = 1:10, widths = "auto", ignoreMergedCells = FALSE)
 addStyle(wb, "False Transfers", createStyle(textDecoration = "bold"), rows = 1, cols = 1:10, gridExpand = T, stack = T)
+if(!is.null(FalTrAY)){
+  if(is.null(FalTr)){
+    addStyle(wb, "False Transfers", 
+             createStyle(fgFill = "cornflowerblue"), 
+             rows = 2:(nrow(FalTrAY)+1), cols = 1:6, 
+             gridExpand = T, stack = T)
+  } else {
+    addStyle(wb, "False Transfers", 
+             createStyle(fgFill = "cornflowerblue"), 
+             rows = (nrow(FalTr) - nrow(FalTrAY) + 2):(nrow(FalTr)+1), cols = 1:6, 
+             gridExpand = T, stack = T)  
+  }
+}
 
-writeData(wb=wb, sheet = "Simultaneous", x = SimEnr)
-writeData(wb=wb, sheet = "Overlapping", x = OverLap)
-writeData(wb=wb, sheet = "False Transfers", x = FalTr)
+addWorksheet(wb=wb, sheetName = "Disappearing")
+freezePane(wb, "Disappearing", firstActiveRow = 2, firstActiveCol = 2)
+setColWidths(wb, "Disappearing", cols = 1:10, widths = "auto", ignoreMergedCells = FALSE)
+addStyle(wb, "Disappearing", createStyle(textDecoration = "bold"), rows = 1, cols = 1:5, gridExpand = T, stack = T)
+addStyle(wb, "Disappearing", createStyle(fgFill = "cornflowerblue"), rows = 2:(nrow(DP)+1), cols = 1:10, gridExpand = T, stack = T)
 
-saveWorkbook(wb = wb, file = "March UIAS Report.xlsx", overwrite = T)
+if(!is.null(SE)){writeData(wb=wb, sheet = "Simultaneous", x = SimEnr)}
+if(!is.null(FT)){if(!is.null(OverLap)){writeData(wb=wb, sheet = "Overlapping", x = OverLap)}}
+if(!(is.null(FT) & is.null(FT.AY))){writeData(wb=wb, sheet = "False Transfers", x = FalTr)}
+if(!is.null(DP)){writeData(wb=wb, sheet = "Disappearing", x = DisapStu)}
+
+saveWorkbook(wb = wb, file = "April UIAS Report.xlsx", overwrite = T)
 
 
