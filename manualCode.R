@@ -1,16 +1,16 @@
 #manual code exectuion
 
-#get functions and set lea ####
+#Setup: load functions, set LEA, initialize variables ####
 library(openxlsx)
 myLEA = "Green Tech High Charter"
 
 #Set up the input variables
-FD = NULL
-FT = NULL
-SE = NULL
-DP = NULL
-FT.AY = NULL
-
+FD = NA
+FT = NA
+SE = NA
+DP = NA
+FT.AY = NA
+Demographics = NA
 
 # read in the data ####
 FD = read.xlsx(xlsxFile = "False Dropouts.xlsx", sheet = "violations", startRow = 10)
@@ -18,22 +18,22 @@ FT = read.xlsx(xlsxFile = "False Transfers.xlsx", sheet = "violations", startRow
 SE = read.xlsx(xlsxFile = "Simultaneous Enrollments.xlsx", sheet = "violations", startRow = 9)
 DP = read.xlsx(xlsxFile = "Disappearing Students.xlsx", sheet = "violations", startRow = 10)
 FT.AY = read.xlsx(xlsxFile = "False Transfers Across Years.xlsx", sheet = "violations", startRow = 9)
-
+Demographics = read.csv("Demographics.csv") #Demographics (AKA Student Lite) extract 
 
 # Simultaneous Enrollments ####
-if(!is.null(SE)){
-SE.local = SE[SE$LEA == myLEA,]
+if(!is.na(SE)){                 #as long as SE (the simultaneous enrollment input) exists...
+SE.local = SE[SE$LEA == myLEA,]   #split the records into those that are local and those that reference a different LEA
 SE.other = SE[SE$LEA != myLEA,]
-SimEnr = data.frame(NYSSIS = unique(SE$NYSSIS), stringsAsFactors = FALSE)
-SimEnr$LocalEntry = as.Date(SE.local$Entry.Date[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)], format = "%m/%d/%Y")
+SimEnr = data.frame(NYSSIS = unique(SE$NYSSIS), stringsAsFactors = FALSE)   #Create a dataset with 1 row for each unique NYSSIS ID
+SimEnr$LocalEntry = as.Date(SE.local$Entry.Date[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)], format = "%m/%d/%Y")  #load the local and other entry dates
 SimEnr$OtherEntry = as.Date(SE.other$Entry.Date[match(x = SimEnr$NYSSIS, table = SE.other$NYSSIS)], format = "%m/%d/%Y")
 
-SimEnr$LocalContinuer = SimEnr$LocalEntry == as.Date("2015-07-01")
+SimEnr$LocalContinuer = SimEnr$LocalEntry == as.Date("2015-07-01")   #indicate if the student was enrolled as of July 1
 SimEnr$OtherContinuer = SimEnr$OtherEntry == as.Date("2015-07-01")
-SimEnr$WhoShouldExit = "Unsure"
-SimEnr$WhoShouldExit[SimEnr$LocalEntry < SimEnr$OtherEntry] = "Us?"
-SimEnr$WhoShouldExit[SimEnr$LocalEntry > SimEnr$OtherEntry] = "Them?"
-SimEnr$OtherSchool = SE.other$LEA[match(SimEnr$NYSSIS, SE.other$NYSSIS)]
+SimEnr$WhoShouldExit = "Unsure"                                          #Set the default WhoShouldExit to "Unsure"
+SimEnr$WhoShouldExit[SimEnr$LocalEntry < SimEnr$OtherEntry] = "Us?"      #If we entered first, set it as "Us?"
+SimEnr$WhoShouldExit[SimEnr$LocalEntry > SimEnr$OtherEntry] = "Them?"    #If they entered first, set it as "Them?"
+SimEnr$OtherSchool = SE.other$LEA[match(SimEnr$NYSSIS, SE.other$NYSSIS)] #
 SimEnr$lastName = SE.local$Last.Name[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)]
 SimEnr$firstName = SE.local$First.Name[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)]
 SimEnr$ID = SE.local$Local.ID[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)]
@@ -44,7 +44,7 @@ SimEnr = SimEnr[order(SimEnr$WhoShouldExit, SimEnr$OtherSchool),]
 
 
 # False Transfers ####
-if(!is.null(FT)){
+if(!is.na(FT)){
 FalTr = FT[FT$Case == "FT",c("Last.Name", "First.Name","NYSSIS","Local.ID","Entry.Date","Exit.Date")]
 OL = FT[FT$Case == "OL",]
 OL.local = OL[OL$LEA == myLEA,]
@@ -88,9 +88,9 @@ OverLap = OverLap[order(OverLap$OtherLEA, OverLap$issue),]
 
 
 # False Transfers Across Years ####
-if(!is.null(FT.AY)){
+if(!is.na(FT.AY)){
 FalTrAY = FT.AY[FT.AY$Case == "FT",c("Last.Name", "First.Name","NYSSIS","Local.ID","Entry.Date","Exit.Date")]
-if(is.null(FalTr)){
+if(is.na(FalTr)){
   FalTr = FalTrAY
 } else {
   FalTr = rbind.data.frame(FalTr, FalTrAY)
@@ -99,14 +99,14 @@ if(is.null(FalTr)){
 
 
 # Disappearing Students ####
-if(!is.null(DP)){
+if(!is.na(DP)){
 DisapStu = DP[,c("Last.Name","First.Name","NYSSIS","Local.ID","Entry.Date")]
 }
 
 
 # False Dropouts ####
 # this section has not been written yet
-if(!is.null(FD)){}
+if(!is.na(FD)){}
 
 
 # Comparison to prior month ####
@@ -130,8 +130,8 @@ addWorksheet(wb=wb, sheetName = "False Transfers")
 freezePane(wb, "False Transfers", firstActiveRow = 2, firstActiveCol = 2)
 setColWidths(wb, "False Transfers", cols = 1:10, widths = "auto", ignoreMergedCells = FALSE)
 addStyle(wb, "False Transfers", createStyle(textDecoration = "bold"), rows = 1, cols = 1:10, gridExpand = T, stack = T)
-if(!is.null(FalTrAY)){
-  if(is.null(FalTr)){
+if(!is.na(FalTrAY)){
+  if(is.na(FalTr)){
     addStyle(wb, "False Transfers", 
              createStyle(fgFill = "cornflowerblue"), 
              rows = 2:(nrow(FalTrAY)+1), cols = 1:6, 
@@ -150,10 +150,10 @@ setColWidths(wb, "Disappearing", cols = 1:10, widths = "auto", ignoreMergedCells
 addStyle(wb, "Disappearing", createStyle(textDecoration = "bold"), rows = 1, cols = 1:5, gridExpand = T, stack = T)
 addStyle(wb, "Disappearing", createStyle(fgFill = "cornflowerblue"), rows = 2:(nrow(DP)+1), cols = 1:10, gridExpand = T, stack = T)
 
-if(!is.null(SE)){writeData(wb=wb, sheet = "Simultaneous", x = SimEnr)}
-if(!is.null(FT)){if(!is.null(OverLap)){writeData(wb=wb, sheet = "Overlapping", x = OverLap)}}
-if(!(is.null(FT) & is.null(FT.AY))){writeData(wb=wb, sheet = "False Transfers", x = FalTr)}
-if(!is.null(DP)){writeData(wb=wb, sheet = "Disappearing", x = DisapStu)}
+if(!is.na(SE)){writeData(wb=wb, sheet = "Simultaneous", x = SimEnr)}
+if(!is.na(FT)){if(!is.na(OverLap)){writeData(wb=wb, sheet = "Overlapping", x = OverLap)}}
+if(!(is.na(FT) & is.na(FT.AY))){writeData(wb=wb, sheet = "False Transfers", x = FalTr)}
+if(!is.na(DP)){writeData(wb=wb, sheet = "Disappearing", x = DisapStu)}
 
 saveWorkbook(wb = wb, file = "April UIAS Report.xlsx", overwrite = T)
 
