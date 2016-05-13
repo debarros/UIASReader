@@ -7,10 +7,10 @@ myLEA = "Green Tech High Charter"
 
 # read in the data ####
 files = data.frame(
-  code = c("FD", "FT", "SE", "DP", "FT.AY", "Dem"),
-  name = c("False Dropouts.xlsx", "False Transfers.xlsx", "Simultaneous Enrollments.xlsx", "Disappearing Students.xlsx", "False Transfers Across Years.xlsx", "Demographics.csv"),
+  code = c("FD", "FT", "SE", "DP", "FT.AY", "Dem", "Enr"),
+  name = c("False Dropouts.xlsx", "False Transfers.xlsx", "Simultaneous Enrollments.xlsx", "Disappearing Students.xlsx", "False Transfers Across Years.xlsx", "Demographics.csv", "Enrollment.csv"),
   exists = NA, 
-  startRow = c(10, 10, 9, 10, 9, 0),
+  startRow = c(10, 10, 9, 10, 9, 0, 0),
   stringsAsFactors = F)
 files$exists = file.exists(files$name)
 
