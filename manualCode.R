@@ -46,7 +46,7 @@ if(is.data.frame(SE)){                 #as long as SE (the simultaneous enrollme
   SimEnr$lastName = SE.local$Last.Name[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)]
   SimEnr$firstName = SE.local$First.Name[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)]
   SimEnr$ID = SE.local$Local.ID[match(x = SimEnr$NYSSIS, table = SE.local$NYSSIS)]
-  SimEnr = SimEnr[,c("firstName", "lastName","ID", "WhoShouldExit", "OtherSchool", "LocalEntry", "OtherEntry")]
+  SimEnr = SimEnr[,c("firstName", "lastName","ID", "NYSSIS", "WhoShouldExit", "OtherSchool", "LocalEntry", "OtherEntry")]
   
   SimEnr = SimEnr[order(SimEnr$WhoShouldExit, SimEnr$OtherSchool),]
 }
