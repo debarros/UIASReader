@@ -86,7 +86,7 @@ createwb.old.cat = function(DC)  {
   if(is.data.frame(DP)){writeData(wb=wb, sheet = "Disappearing", x = DisapStu)}
   
   # Export the completed report
-  saveWorkbook(wb = wb, file =  paste0(currentFolder, "/UIAS Report by category old format.xlsx", overwrite = T))
+  saveWorkbook(wb = wb, file =  paste0(currentFolder, "/UIAS Report by category old format.xlsx"), overwrite = T)
 }
 
 
