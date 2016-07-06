@@ -34,8 +34,11 @@ createwb.old.cat = function(DC)  {
   DP = DC$DP
   SE = DC$SE
   FT = DC$FT
+  FD = DC$FD
   OverLap = DC$OverLap
   SimEnr = DC$SimEnr
+  FalDrop = DC$FalDrop
+  DisapStu = DC$DisapStu
   currentFolder = DC$currentFolder
   
   # set up the simultaneous enrollments tab
@@ -78,12 +81,20 @@ createwb.old.cat = function(DC)  {
     addStyle(wb, "Disappearing", createStyle(fgFill = "cadetblue1"), rows = 2:(nrow(DP)+1), cols = 1:10, gridExpand = T, stack = T)
   }
   
+  # set up the false dropouts tab
+  addWorksheet(wb=wb, sheetName = "False Dropouts")
+  freezePane(wb, "False Dropouts", firstActiveRow = 2, firstActiveCol = 2)
+  setColWidths(wb, "False Dropouts", cols = 1:10, widths = "auto", ignoreMergedCells = FALSE)
+  addStyle(wb, "False Dropouts", createStyle(textDecoration = "bold"), rows = 1, cols = 1:10, gridExpand = T, stack = T)
+  
+  
   
   # Add data to the tabs
   if(is.data.frame(SE)){writeData(wb=wb, sheet = "Simultaneous", x = SimEnr)}
   if(is.data.frame(FT)){if(is.data.frame(OverLap)){writeData(wb=wb, sheet = "Overlapping", x = OverLap)}}
   if(is.data.frame(FT) | is.data.frame(FT.AY)){writeData(wb=wb, sheet = "False Transfers", x = FalTr)}
   if(is.data.frame(DP)){writeData(wb=wb, sheet = "Disappearing", x = DisapStu)}
+  if(is.data.frame(FD)){writeData(wb=wb, sheet = "False Dropouts", x = FalDrop)}
   
   # Export the completed report
   saveWorkbook(wb = wb, file =  paste0(currentFolder, "/UIAS Report by category old format.xlsx"), overwrite = T)

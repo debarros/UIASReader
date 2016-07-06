@@ -21,6 +21,7 @@ readData = function(currentFolder, priorFolder, form = "New"){
                  "False Transfers Across Years.xlsx", "Demographics.csv", "Enrollment.csv"), #these are the filenames.  They are case sensitive.
         exists = NA, 
         startRow = c(10, 10, 9, 10, 9, 0, 0), #for xlsx, this is the row with the column headings.  For csv, it's nothing.
+        myLEA = NA,  #this will be filled in by reading the LEA from the UIAS files 
         stringsAsFactors = F)
       files$exists = file.exists(paste0(currentFolder,"/",files$name))
       DC = readOldFormat(files, currentFolder, priorFolder)
@@ -59,6 +60,7 @@ readOldFormat = function (files, currentFolder, priorFolder){
     if(files$exists[i]){ #if the file exists,
       if(substr(filePaths[i], nchar(filePaths[i]), nchar(filePaths[i])) == "x"){ #if it's an xlsx file
         assign(files$code[i], read.xlsx(xlsxFile = filePaths[i], sheet = "violations", startRow = files$startRow[i])) #read it in
+        files$myLEA[i] = read.xlsx(xlsxFile = filePaths[i], sheet = "violations", rows = as.integer(c(3,4)), cols = as.integer(2))[1,1]
       } else { #otherwise, it's a csv
         assign(files$code[i], read.csv(file = filePaths[i], header = F, colClasses = "character")) #read it in
       }
@@ -66,8 +68,9 @@ readOldFormat = function (files, currentFolder, priorFolder){
       assign(files$code[i], NA) #create the variable anyway and set it to NA
     }
   }
-  
-  
+
+
+    
   # Report on the how reading the files went
   if(sum(!files$exists) == 0){
     print("All files were found.")
@@ -77,8 +80,15 @@ readOldFormat = function (files, currentFolder, priorFolder){
     print("If you thought you had them, make sure they are in the right folder and the filenames are spelled correctly.")
   }
   
+  if(!all(files$myLEA[!is.na(files$myLEA)] == files$myLEA[!is.na(files$myLEA)][1])){
+    warning("Not all of the files refer to the same LEA.  The following LEA's were found:")
+    print(unique(files$myLEA[!is.na(files$myLEA)]))
+  } else {
+    myLEA = files$myLEA[!is.na(files$myLEA)][1]
+  }
   
   # return the data
   DC = mget(files$code)
+  DC$myLEA = myLEA
   return(DC)
 }

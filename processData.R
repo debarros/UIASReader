@@ -1,10 +1,10 @@
 # processData.R
 
 
-processData = function(DC, myLEA, firstDay){
+processData = function(DC, firstDay){
   if(DC$form %in% c("Old", "New")){
     if(DC$form == "Old"){
-      DC = processOldFormat(DC, myLEA, firstDay)
+      DC = processOldFormat(DC, firstDay)
     } else {
       DC = NA
       warning("That functionality has not been written yet.")
@@ -17,7 +17,9 @@ processData = function(DC, myLEA, firstDay){
 
 
 
-processOldFormat = function(DC, myLEA, firstDay){
+processOldFormat = function(DC, firstDay){
+  
+  myLEA = DC$myLEA
   
   # Simultaneous Enrollments ####
   SE = DC$SE
@@ -117,9 +119,17 @@ processOldFormat = function(DC, myLEA, firstDay){
   
   
   # False Dropouts ####
-  # this section has not been written yet
   FD = DC$FD
-  if(is.data.frame(FD)){}
+  if(is.data.frame(FD)){
+    FD$LocalEntry = as.Date(FD$Entry.Date, format = "%m/%d/%Y")
+    FD$OtherEntry = as.Date(FD$New.Entry.Date, format = "%m/%d/%Y")
+    FD$LocalExit = as.Date(FD$Exit.Date, format = "%m/%d/%Y")
+    FalDrop = FD[,c("First.Name", "Last.Name","Local.ID","NYSSIS","LocalEntry","LocalExit","OtherEntry")]
+    FalDrop$OtherLEA = FD$New.Location
+    FalDrop$Overlap = "No overlap"
+    FalDrop$Overlap[FalDrop$OtherEntry <= FalDrop$LocalExit] = "She/He enrolled there before we marked him/her as a dropout.  Change his/her exit date."
+    FalDrop = FalDrop[order(FalDrop$OtherLEA, FalDrop$Overlap),]
+  }
   
   
   # Comparison to prior month ####
@@ -131,6 +141,7 @@ processOldFormat = function(DC, myLEA, firstDay){
   DC$OverLap = OverLap
   DC$FalTrAY = FalTrAY
   DC$DisapStu = DisapStu
+  DC$FalDrop = FalDrop
   
   return(DC)
 }
