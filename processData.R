@@ -129,6 +129,8 @@ processOldFormat = function(DC, firstDay){
     FalDrop$Overlap = "No overlap"
     FalDrop$Overlap[FalDrop$OtherEntry <= FalDrop$LocalExit] = "She/He enrolled there before we marked him/her as a dropout.  Change his/her exit date."
     FalDrop = FalDrop[order(FalDrop$OtherLEA, FalDrop$Overlap),]
+  } else {
+    FalDrop = NA
   }
   
   
